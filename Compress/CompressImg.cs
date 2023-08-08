@@ -8,8 +8,12 @@ namespace CompressImg.Compress
         {
             try
             {
-                byte[] optimizedImageBytes = OptimizeImage(imageBytes, maxquality*1024);
-                return optimizedImageBytes;
+                if (imageBytes.Length > 500 * 1024)
+                {
+                    byte[] optimizedImageBytes = OptimizeImage(imageBytes, maxquality * 1024);
+                    return optimizedImageBytes;
+                }
+                return imageBytes;
             }
             catch (Exception e)
             {
