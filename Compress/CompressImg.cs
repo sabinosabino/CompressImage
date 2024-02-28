@@ -8,7 +8,7 @@ namespace CompressImg.Compress
         {
             try
             {
-                if (imageBytes.Length > 500 * 1024)
+                if (imageBytes.Length > maxquality * 1024)
                 {
                     byte[] optimizedImageBytes = OptimizeImage(imageBytes, maxquality * 1024);
                     return optimizedImageBytes;
@@ -30,30 +30,36 @@ namespace CompressImg.Compress
                     {
                         image.Resize(new MagickGeometry(800, 600));
 
-                        int desiredQuality = 85;
+                        int initialQuality = 85;
+                        int qualityStep = 5;
+                        int currentQuality = initialQuality;
+
+                        MagickFormat outputFormat = MagickFormat.Jpg;
+                        int outputQuality = initialQuality;
 
                         while (true)
                         {
-                            byte[] tempBytes = image.ToByteArray(MagickFormat.Jpg);
-
-                            if (tempBytes.Length <= maxSizeBytes || desiredQuality < 5)
+                            using (var tempStream = new MemoryStream())
                             {
-                                return tempBytes;
-                            }
+                                image.Quality = currentQuality;
+                                image.Format = outputFormat;
+                                image.Write(tempStream);
 
-                            desiredQuality -= 5;
-                            image.Quality = desiredQuality;
+                                if (tempStream.Length <= maxSizeBytes || currentQuality <= 5)
+                                {
+                                    return tempStream.ToArray();
+                                }
+
+                                currentQuality -= qualityStep;
+                            }
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-
                 throw new Exception(e.Message);
             }
-
-
         }
 
     }
